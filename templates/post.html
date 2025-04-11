@@ -1,0 +1,80 @@
+{% from "bootstrap5/form.html" import render_form %} {% block content %}
+{% include "header.html" %}
+
+<!-- Page Header-->
+<header class="masthead" style="background-image: url('{{post.img_url}}')">
+  <div class="container position-relative px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="post-heading">
+          <h1>{{ post.title }}</h1>
+          <h2 class="subheading">{{ post.subtitle }}</h2>
+          <span class="meta"
+            >Posted by
+            <a href="#">{{ post.user.name }}</a>
+            on {{ post.date }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Post Content -->
+<article>
+  <div class="container px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        {{ post.body|safe }}
+        <!--TODO: Only show Edit Post button if user id is 1 (admin user) -->
+        <div class="d-flex justify-content-end mb-4">
+          <a
+            class="btn btn-primary float-right"
+            href="{{url_for('edit_post', post_id=post.id)}}"
+            >Edit Post</a
+          >
+        </div>
+
+        <!-- Comments Area -->
+        <!-- TODO: Add a CKEditor for commenting below -->
+        <h2> Leave Your Thoughts </h2>
+        <div class="comment">
+          {{ ckeditor.load(pkg_type="basic") }}
+          {{ ckeditor.config(name='body') }}
+          {{ render_form(form) }}
+          <!-- TODO: Show all the comments on a post -->
+          {% if comments %}
+          <ul class="commentList list-unstyled">
+            {% for comment in comments %}
+            <li class="mb-4 border-bottom pb-3">
+              <div class="d-flex">
+                <img 
+                src="{{ avatar(comment.user.email, 'lorelei') }}" 
+                width="50"
+                height="50" 
+                class="rounded-circle" 
+                />
+                <div>
+                  <div class="commentText">
+                    <div class="mb-1 small text-muted">{{ comment.user.name }} 
+                      {% if current_user.is_authenticated and (current_user.id == 1 or current_user.role in ['admin', 'editor'] or current_user.id == comment.user.id) %}
+                      <a href="{{ url_for('delete_comment', comment_id=comment.id) }}" class="text-danger ms-2">✘</a>
+                    {% endif %}
+                    </div> 
+                    <div>{{ comment.text|safe }}</div>
+                  </div>
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>      
+          {% else %}
+            <p class="text-muted">No comments yet. Be the first to comment!</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+
+{% include "footer.html" %} {% endblock %}
